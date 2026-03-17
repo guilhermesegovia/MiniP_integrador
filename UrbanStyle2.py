@@ -8,393 +8,198 @@ class Fornecedor:
     cnpj: str
 
 @dataclass
+class Cliente:
+    id: int
+    nome: str
+    telefone: str
+    cpf: str
+    email: str
+    senha: str
+    endereco: str
+    cep: str
+    data_nascimento: str
+
+@dataclass
+class Funcionario:
+    id: int
+    nome: str
+    setor: str
+    cargo: str
+    data_nascimento: str
+    endereco: str
+    cpf: str
+
+@dataclass
+class Categoria:
+    id: int
+    nome: str
+    descricao: str
+
+@dataclass
 class Produto:
     id: int
     nome: str
-    categoria: str
+    id_categoria: int
     tamanho: str
     cor: str
     codigo_barras: str
     custo: float
     venda: float
     estoque: int
-    fornecedor_id: int
+    data_cadastro: str
+    descricao: str
+    marca: str
+    id_fornecedor: int
 
 @dataclass
-class MovimentoEstoque:
+class Pedido:
     id: int
-    produto_id: int
-    tipo: str
-    quantidade: int
-    data_hora: str
-
-@dataclass
-class Compra:
-    id: int
-    produto_id: int
+    frete: float
+    cupom: str
     quantidade: int
     total: float
     data_hora: str
+    endereco_entrega: str
+    id_cliente: int
 
 @dataclass
-class Cliente:
+class Pagamento:
     id: int
-    nome: str
-    cpf: str
-    email: str
-    endereco: str
-    data_nascimento: str
-    senha: str
-    numero_telefone: str
+    metodo: str
+    status_pagamento: str
+    data_pagamento: str
+    status_entrega: str
+    id_pedido: int
 
 @dataclass
-class Funcionario:
+class Estoque:
     id: int
-    nome: str
-    cpf: str
-    setor: str
-    cargo: str
+    tipo: str
+    quantidade: int
+    data_entrada: str
+    data_saida: str
+    id_produto: int
+    id_funcionario: int
 
+@dataclass
+class ItemPedido:
+    id: int
+    id_produto: int
+    id_pedido: int
+    quantidade: int
 
-clientes = []
+@dataclass
+class Avaliacao:
+    id: int
+    comentario: str
+    estrelas: float
+
 fornecedores = []
-movimentos = []
-compras = []
+clientes = []
+funcionarios = []
+categorias = []
 produtos = []
-funcionario = []
-carrinho = []
-
+pedidos = []
+pagamentos = []
+estoques = []
+itens_pedido = []
+avaliacoes = []
 
 def proximo_id(lista):
     return len(lista) + 1
 
-
 def agora():
     return datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-
-
-# FORNECEDOR
-
-
 def cadastrar_fornecedor():
-    print("\n--- Cadastrar Fornecedor ---")
-    nome = input("Nome da Empresa: ")
+    nome = input("Nome da empresa: ")
     cnpj = input("CNPJ: ")
-
-    fornecedor = Fornecedor(
-        proximo_id(fornecedores),
-        nome,
-        cnpj
-    )
-
-    fornecedores.append(fornecedor)
-    print("Fornecedor cadastrado!")
-
-
-def listar_fornecedores():
-    print("\n--- Fornecedores ---")
-    for f in fornecedores:
-        print(f)
-
-
-
-# PRODUTOS
-
-
-def cadastrar_produto():
-    if len(fornecedores) == 0:
-        print("Cadastre um fornecedor primeiro.")
-        return
-
-    print("\n--- Cadastrar Produto ---")
-    nome = input("Nome: ")
-    categoria = input("Categoria: ")
-    tamanho = input("Tamanho: ")
-    cor = input("Cor: ")
-    codigo_barras = input("Código de barras: ")
-    custo = float(input("Valor de custo: "))
-    venda = float(input("Valor de venda: "))
-    estoque = int(input("Quantidade em estoque: "))
-
-    print("\nFORNECEDORES:")
-    listar_fornecedores()
-    fornecedor_id = int(input("ID do fornecedor: "))
-
-    produto = Produto(
-        proximo_id(produtos),
-        nome,
-        categoria,
-        tamanho,
-        cor,
-        codigo_barras,
-        custo,
-        venda,
-        estoque,
-        fornecedor_id
-    )
-
-    produtos.append(produto)
-
-    if estoque > 0:
-        movimento = MovimentoEstoque(
-            proximo_id(movimentos),
-            produto.id,
-            "ENTRADA",
-            estoque,
-            agora()
-        )
-        movimentos.append(movimento)
-
-    print("Produto cadastrado!")
-
-
-def listar_produtos():
-    print("\n--- PRODUTOS ---")
-    for p in produtos:
-        print(p)
-
-
-
-# ESTOQUE
-
-
-def entrada_estoque():
-    print("\n--- ENTRADA DE ESTOQUE ---")
-    listar_produtos()
-
-    pid = int(input("ID do produto: "))
-    quantidade = int(input("Quantidade: "))
-
-    for p in produtos:
-        if p.id == pid:
-            p.estoque += quantidade
-
-            movimento = MovimentoEstoque(
-                proximo_id(movimentos),
-                pid,
-                "ENTRADA",
-                quantidade,
-                agora()
-            )
-
-            movimentos.append(movimento)
-
-            print("Entrada registrada!")
-
-
-def saida_estoque(tipo):
-    print("\n--- SAÍDA DE ESTOQUE ---")
-    listar_produtos()
-
-    pid = int(input("ID do produto: "))
-    quantidade = int(input("Quantidade: "))
-
-    for p in produtos:
-        if p.id == pid:
-
-            if quantidade <= p.estoque:
-
-                p.estoque -= quantidade
-
-                movimento = MovimentoEstoque(
-                    proximo_id(movimentos),
-                    pid,
-                    tipo,
-                    quantidade,
-                    agora()
-                )
-
-                movimentos.append(movimento)
-
-                print("Saída registrada!")
-
-            else:
-                print("Estoque insuficiente.")
-
-
-
-# VENDAS
-
-
-def comprar():
-    print("\n--- COMPRA ---")
-    listar_produtos()
-
-    pid = int(input("ID do produto: "))
-    quantidade = int(input("Quantidade: "))
-
-    for p in produtos:
-
-        if p.id == pid:
-
-            if quantidade <= p.estoque:
-
-                p.estoque -= quantidade
-
-                total = p.venda * quantidade
-
-                compra = Compra(
-                    proximo_id(compras),
-                    pid,
-                    quantidade,
-                    total,
-                    agora()
-                )
-
-                compras.append(compra)
-
-                movimento = MovimentoEstoque(
-                    proximo_id(movimentos),
-                    pid,
-                    "SAIDA_VENDA",
-                    quantidade,
-                    agora()
-                )
-
-                movimentos.append(movimento)
-
-                print("Compra realizada! Total:", total)
-
-            else:
-                print("Estoque insuficiente.")
-
-
-
-# CARRINHO
-
-
-def adicionar_carrinho():
-
-    print("\n--- Adicionar ao Carrinho ---")
-
-    listar_produtos()
-
-    pid = int(input("ID do produto: "))
-    quantidade = int(input("Quantidade: "))
-
-    for p in produtos:
-
-        if p.id == pid:
-
-            if quantidade <= p.estoque:
-
-                item = {
-                    "produto_id": p.id,
-                    "nome": p.nome,
-                    "quantidade": quantidade,
-                    "valor": p.venda
-                }
-
-                carrinho.append(item)
-
-                print("Produto adicionado ao carrinho!")
-
-                return
-
-            else:
-                print("Estoque insuficiente")
-
-                return
-
-    print("Produto não encontrado")
-
-
-def ver_carrinho():
-
-    print("\n--- Carrinho ---")
-
-    if len(carrinho) == 0:
-        print("Carrinho vazio")
-        return
-
-    total = 0
-
-    for item in carrinho:
-
-        subtotal = item["quantidade"] * item["valor"]
-
-        total += subtotal
-
-        print(f'{item["nome"]} | Qtd: {item["quantidade"]} | Subtotal: R$ {subtotal:.2f}')
-
-    print(f"\nTOTAL: R$ {total:.2f}")
-
-
-
-# RELATÓRIOS
-
-
-def estoque_baixo():
-
-    print("\n--- Produtos com baixo estoque ---")
-
-    for p in produtos:
-
-        if p.estoque < 20:
-
-            print(f"{p.nome} está com apenas {p.estoque} unidades")
-
-
-def margem_lucro():
-
-    listar_produtos()
-
-    pid = int(input("ID do produto: "))
-
-    for p in produtos:
-
-        if p.id == pid:
-
-            lucro = p.venda - p.custo
-
-            margem = (lucro / p.venda) * 100
-
-            print(f"\nProduto: {p.nome}")
-            print(f"Custo: {p.custo}")
-            print(f"Venda: {p.venda}")
-            print(f"Lucro unidade: {lucro}")
-            print(f"Margem: {margem:.2f}%")
-
-            return
-
-    print("Produto não encontrado")
-
-
-
-# LISTAGENS
-
-
-def listar_compras():
-    for c in compras:
-        print(c)
-
-
-def listar_movimentos():
-    for m in movimentos:
-        print(m)
-
-
-def listar_clientes():
-    for c in clientes:
-        print(c)
-
+    f = Fornecedor(proximo_id(fornecedores), nome, cnpj)
+    fornecedores.append(f)
 
 def cadastrar_cliente():
     nome = input("Nome: ")
+    telefone = input("Telefone: ")
+    cpf = input("CPF: ")
     email = input("Email: ")
     senha = input("Senha: ")
-    numero_telefone = input("Telefone: ")
     endereco = input("Endereço: ")
-    data_nascimento = input("Data de nascimento: ")
-    cpf = input("CPF: ")
-
-    c = Cliente(proximo_id(clientes), nome, cpf, email, endereco, data_nascimento, senha, numero_telefone)
+    cep = input("CEP: ")
+    data_nascimento = input("Data nascimento: ")
+    c = Cliente(proximo_id(clientes), nome, telefone, cpf, email, senha, endereco, cep, data_nascimento)
     clientes.append(c)
 
-    print("Cliente cadastrado com sucesso!")
+def cadastrar_funcionario():
+    nome = input("Nome: ")
+    setor = input("Setor: ")
+    cargo = input("Cargo: ")
+    data_nascimento = input("Data nascimento: ")
+    endereco = input("Endereço: ")
+    cpf = input("CPF: ")
+    f = Funcionario(proximo_id(funcionarios), nome, setor, cargo, data_nascimento, endereco, cpf)
+    funcionarios.append(f)
 
+def cadastrar_categoria():
+    nome = input("Nome: ")
+    descricao = input("Descrição: ")
+    c = Categoria(proximo_id(categorias), nome, descricao)
+    categorias.append(c)
 
+def cadastrar_produto():
+    nome = input("Nome: ")
+    id_categoria = int(input("ID categoria: "))
+    tamanho = input("Tamanho: ")
+    cor = input("Cor: ")
+    codigo = input("Código barras: ")
+    custo = float(input("Custo: "))
+    venda = float(input("Venda: "))
+    estoque = int(input("Estoque: "))
+    descricao = input("Descrição: ")
+    marca = input("Marca: ")
+    id_fornecedor = int(input("ID fornecedor: "))
+    p = Produto(proximo_id(produtos), nome, id_categoria, tamanho, cor, codigo, custo, venda, estoque, agora(), descricao, marca, id_fornecedor)
+    produtos.append(p)
+
+def cadastrar_pedido():
+    id_cliente = int(input("ID cliente: "))
+    frete = float(input("Frete: "))
+    cupom = input("Cupom: ")
+    quantidade = int(input("Quantidade: "))
+    total = float(input("Total: "))
+    endereco = input("Endereço entrega: ")
+    p = Pedido(proximo_id(pedidos), frete, cupom, quantidade, total, agora(), endereco, id_cliente)
+    pedidos.append(p)
+
+def cadastrar_pagamento():
+    metodo = input("Método: ")
+    status_pagamento = input("Status pagamento: ")
+    status_entrega = input("Status entrega: ")
+    id_pedido = int(input("ID pedido: "))
+    p = Pagamento(proximo_id(pagamentos), metodo, status_pagamento, agora(), status_entrega, id_pedido)
+    pagamentos.append(p)
+
+def cadastrar_estoque():
+    tipo = input("Tipo: ")
+    quantidade = int(input("Quantidade: "))
+    id_produto = int(input("ID produto: "))
+    id_funcionario = int(input("ID funcionário: "))
+    e = Estoque(proximo_id(estoques), tipo, quantidade, agora(), "", id_produto, id_funcionario)
+    estoques.append(e)
+
+def cadastrar_item_pedido():
+    id_produto = int(input("ID produto: "))
+    id_pedido = int(input("ID pedido: "))
+    quantidade = int(input("Quantidade: "))
+    i = ItemPedido(proximo_id(itens_pedido), id_produto, id_pedido, quantidade)
+    itens_pedido.append(i)
+
+#Cadastro avaliação
+
+def cadastrar_avaliacao():
+    comentario = input("Comentário: ")
+    estrelas = float(input("Estrelas: "))
+    a = Avaliacao(proximo_id(avaliacoes), comentario, estrelas)
+    avaliacoes.append(a)
 
 # MENUS
 
@@ -404,6 +209,13 @@ def menu_administrativo():
         print("1 - Cadastrar fornecedor")
         print("2 - Cadastrar produto")
         print("3 - Cadastrar cliente")
+        print("4 - Listar cliente")
+        print("5 - Listar fornecedor")
+        print("6 - Listar produto")
+        print("7 - Cadastrar funcionário")
+        print("8 - Listar funcionários")
+        print("9 - Cadastrar categoria")
+        print("10 - Listar categorias")
         print("0 - Voltar")
 
         op = input("Escolha: ")
@@ -414,6 +226,21 @@ def menu_administrativo():
             cadastrar_produto()
         elif op == "3":
             cadastrar_cliente()
+        elif op == "4":
+            listar_clientes()
+        elif op == "5":
+            listar_fornecedores()
+        elif op == "6":
+            listar_produtos()
+        elif op == "7":
+            cadastrar_funcionario()
+        elif op == "8":
+            listar_funcionarios()
+        elif op == "9":
+            cadastrar_categoria()
+        elif op == "10":
+            for c in categorias:
+                print(c)
         elif op == "0":
             break
         else:
@@ -427,6 +254,7 @@ def menu_estoque():
         print("2 - Saida por venda")
         print("3 - Saida por troca")
         print("4 - Saida por avaria")
+        print("5 - Registrar movimentação")
         print("0 - Voltar")
 
         op = input("Escolha: ")
@@ -439,6 +267,8 @@ def menu_estoque():
             saida_estoque("SAIDA_TROCA")
         elif op == "4":
             saida_estoque("SAIDA_AVARIA")
+        elif op == "5":
+            cadastrar_estoque()
         elif op == "0":
             break
         else:
@@ -451,6 +281,9 @@ def menu_vendas():
         print("1 - Comprar produto")
         print("2 - Adicionar ao carrinho")
         print("3 - Ver carrinho")
+        print("4 - Criar pedido")
+        print("5 - Adicionar item ao pedido")
+        print("6 - Registrar pagamento")
         print("0 - Voltar")
 
         op = input("Escolha: ")
@@ -461,6 +294,12 @@ def menu_vendas():
             adicionar_carrinho()
         elif op == "3":
             ver_carrinho()
+        elif op == "4":
+            cadastrar_pedido()
+        elif op == "5":
+            cadastrar_item_pedido()
+        elif op == "6":
+            cadastrar_pagamento()
         elif op == "0":
             break
         else:
@@ -475,6 +314,10 @@ def menu_relatorios():
         print("3 - Listar movimentos")
         print("4 - Estoque baixo")
         print("5 - Margem de lucro")
+        print("6 - Listar pedidos")
+        print("7 - Listar pagamentos")
+        print("8 - Listar itens do pedido")
+        print("9 - Listar avaliações")
         print("0 - Voltar")
 
         op = input("Escolha: ")
@@ -489,11 +332,22 @@ def menu_relatorios():
             estoque_baixo()
         elif op == "5":
             margem_lucro()
+        elif op == "6":
+            for p in pedidos:
+                print(p)
+        elif op == "7":
+            for p in pagamentos:
+                print(p)
+        elif op == "8":
+            for i in itens_pedido:
+                print(i)
+        elif op == "9":
+            for a in avaliacoes:
+                print(a)
         elif op == "0":
             break
         else:
             print("Opção inválida")
-
 
 
 # MENU PRINCIPAL
