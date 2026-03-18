@@ -104,6 +104,7 @@ pagamentos = []
 estoques = []
 itens_pedido = []
 avaliacoes = []
+carrinho = []
 
 def proximo_id(lista):
     return len(lista) + 1
@@ -111,11 +112,37 @@ def proximo_id(lista):
 def agora():
     return datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
+# LISTAGENS
+
+def listar_clientes():
+    for c in clientes:
+        print(c)
+
+def listar_fornecedores():
+    for f in fornecedores:
+        print(f)
+
+def listar_produtos():
+    for p in produtos:
+        print(p)
+
+def listar_funcionarios():
+    for f in funcionarios:
+        print(f)
+
+def listar_compras():
+    for p in pedidos:
+        print(p)
+
+def listar_movimentos():
+    for e in estoques:
+        print(e)
+
+# CADASTROS 
 def cadastrar_fornecedor():
     nome = input("Nome da empresa: ")
     cnpj = input("CNPJ: ")
-    f = Fornecedor(proximo_id(fornecedores), nome, cnpj)
-    fornecedores.append(f)
+    fornecedores.append(Fornecedor(proximo_id(fornecedores), nome, cnpj))
 
 def cadastrar_cliente():
     nome = input("Nome: ")
@@ -126,8 +153,7 @@ def cadastrar_cliente():
     endereco = input("Endereço: ")
     cep = input("CEP: ")
     data_nascimento = input("Data nascimento: ")
-    c = Cliente(proximo_id(clientes), nome, telefone, cpf, email, senha, endereco, cep, data_nascimento)
-    clientes.append(c)
+    clientes.append(Cliente(proximo_id(clientes), nome, telefone, cpf, email, senha, endereco, cep, data_nascimento))
 
 def cadastrar_funcionario():
     nome = input("Nome: ")
@@ -136,14 +162,12 @@ def cadastrar_funcionario():
     data_nascimento = input("Data nascimento: ")
     endereco = input("Endereço: ")
     cpf = input("CPF: ")
-    f = Funcionario(proximo_id(funcionarios), nome, setor, cargo, data_nascimento, endereco, cpf)
-    funcionarios.append(f)
+    funcionarios.append(Funcionario(proximo_id(funcionarios), nome, setor, cargo, data_nascimento, endereco, cpf))
 
 def cadastrar_categoria():
     nome = input("Nome: ")
     descricao = input("Descrição: ")
-    c = Categoria(proximo_id(categorias), nome, descricao)
-    categorias.append(c)
+    categorias.append(Categoria(proximo_id(categorias), nome, descricao))
 
 def cadastrar_produto():
     nome = input("Nome: ")
@@ -157,8 +181,7 @@ def cadastrar_produto():
     descricao = input("Descrição: ")
     marca = input("Marca: ")
     id_fornecedor = int(input("ID fornecedor: "))
-    p = Produto(proximo_id(produtos), nome, id_categoria, tamanho, cor, codigo, custo, venda, estoque, agora(), descricao, marca, id_fornecedor)
-    produtos.append(p)
+    produtos.append(Produto(proximo_id(produtos), nome, id_categoria, tamanho, cor, codigo, custo, venda, estoque, agora(), descricao, marca, id_fornecedor))
 
 def cadastrar_pedido():
     id_cliente = int(input("ID cliente: "))
@@ -167,42 +190,102 @@ def cadastrar_pedido():
     quantidade = int(input("Quantidade: "))
     total = float(input("Total: "))
     endereco = input("Endereço entrega: ")
-    p = Pedido(proximo_id(pedidos), frete, cupom, quantidade, total, agora(), endereco, id_cliente)
-    pedidos.append(p)
+    pedidos.append(Pedido(proximo_id(pedidos), frete, cupom, quantidade, total, agora(), endereco, id_cliente))
 
 def cadastrar_pagamento():
     metodo = input("Método: ")
     status_pagamento = input("Status pagamento: ")
     status_entrega = input("Status entrega: ")
     id_pedido = int(input("ID pedido: "))
-    p = Pagamento(proximo_id(pagamentos), metodo, status_pagamento, agora(), status_entrega, id_pedido)
-    pagamentos.append(p)
+    pagamentos.append(Pagamento(proximo_id(pagamentos), metodo, status_pagamento, agora(), status_entrega, id_pedido))
 
 def cadastrar_estoque():
     tipo = input("Tipo: ")
     quantidade = int(input("Quantidade: "))
     id_produto = int(input("ID produto: "))
     id_funcionario = int(input("ID funcionário: "))
-    e = Estoque(proximo_id(estoques), tipo, quantidade, agora(), "", id_produto, id_funcionario)
-    estoques.append(e)
+    estoques.append(Estoque(proximo_id(estoques), tipo, quantidade, agora(), "", id_produto, id_funcionario))
 
 def cadastrar_item_pedido():
     id_produto = int(input("ID produto: "))
     id_pedido = int(input("ID pedido: "))
     quantidade = int(input("Quantidade: "))
-    i = ItemPedido(proximo_id(itens_pedido), id_produto, id_pedido, quantidade)
-    itens_pedido.append(i)
-
-#Cadastro avaliação
+    itens_pedido.append(ItemPedido(proximo_id(itens_pedido), id_produto, id_pedido, quantidade))
 
 def cadastrar_avaliacao():
     comentario = input("Comentário: ")
     estrelas = float(input("Estrelas: "))
-    a = Avaliacao(proximo_id(avaliacoes), comentario, estrelas)
-    avaliacoes.append(a)
+    avaliacoes.append(Avaliacao(proximo_id(avaliacoes), comentario, estrelas))
+
+# COMPRAR
+def comprar():
+    listar_produtos()
+    pid = int(input("ID produto: "))
+    qtd = int(input("Quantidade: "))
+    for p in produtos:
+        if p.id == pid:
+            if qtd <= p.estoque:
+                p.estoque -= qtd
+                total = p.venda * qtd
+                print("Compra realizada:", total)
+            else:
+                print("Estoque insuficiente")
+
+# ESTOQUE
+
+def entrada_estoque():
+    listar_produtos()
+    pid = int(input("ID produto: "))
+    qtd = int(input("Quantidade: "))
+    for p in produtos:
+        if p.id == pid:
+            p.estoque += qtd
+            print("Entrada realizada")
+
+def saida_estoque(tipo):
+    listar_produtos()
+    pid = int(input("ID produto: "))
+    qtd = int(input("Quantidade: "))
+    for p in produtos:
+        if p.id == pid:
+            if qtd <= p.estoque:
+                p.estoque -= qtd
+                print("Saída registrada")
+            else:
+                print("Estoque insuficiente")
+
+def estoque_baixo():
+    for p in produtos:
+        if p.estoque < 20:
+            print(p.nome, "baixo estoque")
+
+# CARRINHO
+def adicionar_carrinho():
+    listar_produtos()
+    pid = int(input("ID produto: "))
+    qtd = int(input("Quantidade: "))
+    for p in produtos:
+        if p.id == pid and qtd <= p.estoque:
+            carrinho.append({"produto": p.nome, "qtd": qtd, "valor": p.venda})
+
+def ver_carrinho():
+    total = 0
+    for i in carrinho:
+        sub = i["qtd"] * i["valor"]
+        total += sub
+        print(i)
+    print("Total:", total)
+
+# MARGEM
+def margem_lucro():
+    listar_produtos()
+    pid = int(input("ID produto: "))
+    for p in produtos:
+        if p.id == pid:
+            lucro = p.venda - p.custo
+            print("Margem:", (lucro/p.venda)*100)
 
 # MENUS
-
 def menu_administrativo():
     while True:
         print("\n====== MENU ADMINISTRATIVO ======")
@@ -246,7 +329,6 @@ def menu_administrativo():
         else:
             print("Opção inválida")
 
-
 def menu_estoque():
     while True:
         print("\n====== MENU ESTOQUE ======")
@@ -273,7 +355,6 @@ def menu_estoque():
             break
         else:
             print("Opção inválida")
-
 
 def menu_vendas():
     while True:
@@ -304,7 +385,6 @@ def menu_vendas():
             break
         else:
             print("Opção inválida")
-
 
 def menu_relatorios():
     while True:
@@ -349,9 +429,6 @@ def menu_relatorios():
         else:
             print("Opção inválida")
 
-
-# MENU PRINCIPAL
-
 def menu():
     while True:
         print("\n======= URBAN STYLE =======")
@@ -375,6 +452,5 @@ def menu():
             break
         else:
             print("Opção inválida")
-
 
 menu()
